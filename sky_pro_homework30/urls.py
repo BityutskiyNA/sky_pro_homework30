@@ -19,10 +19,12 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
+from selection.views import SelectionViewSet
 from user.views import LocationViewSet
 
 router = routers.SimpleRouter()
 router.register('location', LocationViewSet)
+router.register('selection', SelectionViewSet)
 
 urlpatterns = [
                   path('admin/', admin.site.urls),

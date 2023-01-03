@@ -1,5 +1,6 @@
 import csv
 import io
+from datetime import datetime
 
 import psycopg2
 
@@ -52,12 +53,18 @@ def load_user(cursor):
                     row['role'],
                     row['age'],
                     row['location_id'],
+                    False,
+                    "test",
+                    False,
+                    True,
+                    str(datetime.now()),
                 )
             )
 
-    args = ','.join(cursor.mogrify("(%s, %s, %s, %s, %s, %s, %s, %s)", item).decode() for item in data)
+    args = ','.join(cursor.mogrify("(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", item).decode() for item in data)
     cursor.execute(f"""
-              INSERT INTO public.user_user (id, first_name, last_name, username, password, role, age, location_id)
+              INSERT INTO public.user_user (id, first_name, last_name, username, password, role, age, location_id,
+               is_superuser, email, is_staff, is_active, date_joined)
               VALUES {args}
               """)
 

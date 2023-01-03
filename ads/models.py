@@ -6,10 +6,6 @@ from category.models import Category
 from user.models import User
 
 
-
-
-
-
 class Ad(models.Model):
     name = models.CharField(max_length=200)
     author = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,16 +1,16 @@
 import json
 
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, DestroyAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from ads.models import Ad
-from ads.serializers import AdListSerializer
+from ads.permissions import AdDelPermissions, AdUpdatePermissions
+from ads.serializers import AdListSerializer, AdDetailSerializer, AdDestroySerializer, AdUpdateSerializer
 from category.models import Category
-from sky_pro_homework30 import settings
 from user.models import User
 
 
@@ -89,69 +89,23 @@ class AdCreateView(CreateView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class AdUpdateView(UpdateView):
-    model = Ad
-    fields = ['name', 'price', 'description', 'is_published', 'image', 'author', 'category']
-
-    def patch(self, request, *args, **kwargs):
-        super().post(request, *args, **kwargs)
-        response = []
-        ad_data = json.loads(request.body)
-        user_data = User.objects.get(id=ad_data['author_id'])
-        cat_data = Category.objects.get(id=ad_data['category_id'])
-        self.object.name = ad_data['name']
-        self.object.author = user_data
-        self.object.price = ad_data['price']
-        self.object.description = ad_data['description']
-        self.object.category = cat_data
-
-        self.object.save()
-
-        response.append(
-            {
-                "id": self.object.id,
-                "name": self.object.name,
-                "author": self.object.author_id,
-                "price": self.object.price,
-                "description": self.object.description,
-                "image": str(self.object.image),
-                "category": self.object.category_id,
-                "is_published": self.object.is_published,
-            }
-        )
-        return JsonResponse(response, safe=False)
+class AdUpdateView(UpdateAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdUpdateSerializer
+    permission_classes = [IsAuthenticated, AdUpdatePermissions]
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class AdDeleteView(DeleteView):
-    model = Ad
-    success_url = '/'
-
-    def delete(self, request, *args, **kwargs):
-        super().delete(request, *args, **kwargs)
-
-        return JsonResponse({'status': 'ok'}, status=200)
+class AdDeleteView(DestroyAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdDestroySerializer
+    permission_classes = [IsAuthenticated, AdDelPermissions]
 
 
-class AdDetailView(DetailView):
-    model = Ad
-
-    def get(self, request, *args, **kwargs):
-        response = []
-        ad = self.get_object()
-        response.append(
-            {
-                "id": ad.id,
-                "name": ad.name,
-                "author": ad.author_id,
-                "price": ad.price,
-                "description": ad.description,
-                "image": str(ad.image),
-                "category": ad.category_id,
-                "is_published": ad.is_published,
-            }
-        )
-        return JsonResponse(response, safe=False)
+class AdDetailView(RetrieveAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdDetailSerializer
+    permission_classes = [IsAuthenticated]
 
 
 @method_decorator(csrf_exempt, name='dispatch')
