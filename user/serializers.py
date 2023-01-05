@@ -32,7 +32,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         location = Location.objects.get(id=self.location)
         user = User.objects.create(**validated_data, location=location)
-
+        user.set_password(validated_data["password"])
         user.save()
         return user
 
